@@ -1,35 +1,24 @@
-Thumbs.db
 .DS_Store
 *.log
 
-node_modules/
-*_bundle.js
-release*/
-npm-debug.log*
-
+# Xcode
+DerivedData/
 build/
-coverage/
-dist/
-mochawesome-report/
-e2e/playwright-report/
-e2e/test-results/
-test-results/
+*.xcuserstate
+xcuserdata/
+*.moved-aside
 
-test-results.xml
-test_config.json
-.idea
-testUserData
+# Swift Package Manager, if added later
+.build/
+Package.resolved
 
-.gitattributes
+# Local app output
+release/
+*.app.dSYM
+*.xcarchive
 
-fastlane/README.md
-fastlane/report.xml
-
-*.provisionprofile
-*.tsbuildinfo
-
-.eslintcache
-
+# Signing material
 *.p8
-
-.aider*
+*.cer
+*.mobileprovision
+*.provisionprofile

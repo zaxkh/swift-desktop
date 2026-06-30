@@ -1,50 +1,62 @@
-# Mattermost Desktop
+# Mattermost Native Desktop for macOS
 
-[Mattermost](https://mattermost.com) is an open source platform for secure collaboration across the entire software development lifecycle. This repo is for the native desktop application that's built on [Electron](http://electron.atom.io/); it runs on Windows, Mac, and Linux.
+This repository is a native macOS rewrite of the Mattermost Desktop app. It replaces Electron with a SwiftUI shell and persistent `WKWebView` instances for Mattermost web content.
 
-Originally created as "electron-mattermost" by Yuya Ochiai.
+The app targets macOS 14 Sonoma and later.
 
-![mm-desktop-screenshot](https://user-images.githubusercontent.com/52460000/146078917-e1ba8c1f-24e5-4613-8b4b-f3507422f4f2.png)
+## Goals
 
-[![nightly-builds](https://github.com/mattermost/desktop/actions/workflows/nightly-builds.yaml/badge.svg)](https://github.com/mattermost/desktop/actions/workflows/nightly-builds.yaml)
+- Provide a native macOS Mattermost desktop client with lower overhead than Electron.
+- Keep the app shell native: sidebar, tabs, settings, menu commands, Dock badges, notifications, login item support, and status item behavior.
+- Preserve Mattermost web app compatibility through an injected `window.desktopAPI` shim.
+- Keep the implementation small, explicit, and idiomatic Swift.
 
-## Features
+## Project Structure
 
-### Desktop integration
-* Server dropdown for access to multiple servers
-* Dedicated tabs for Channels, Boards and Playbooks
-* Desktop Notifications
-* Badges for unread channels and mentions
-* Deep Linking to open Mattermost links directly in the app
-* Runs in background to reduce number of open windows
+```text
+App/          SwiftUI app entry, AppKit app delegate
+Models/       Codable and observable domain models
+Stores/       App, server, and view state ownership
+Services/     WebKit bridge, URL policy, notifications, badges, status item, login item, Keychain
+Views/        SwiftUI shell, server list, tabs, settings, sheets
+Resources/    Info.plist and entitlements
+```
 
-## Usage
+## Development
 
-### Installation
-Detailed guides are available at [docs.mattermost.com](https://docs.mattermost.com/install/desktop-app-install.html).
+Generate or refresh the Xcode project:
 
-1. Download a file from the [downloads page](https://mattermost.com/download/#mattermostApps) or from the [releases page](https://github.com/mattermost/desktop/releases).
-2. Run the installer or unzip the archive.
-3. Launch Mattermost from your Applications folder, menu, or the unarchived folder.
-3. On the first launch, please enter a name and URL for your Mattermost server. For example, `https://mattermost.example.com`.
+```sh
+xcodegen generate
+```
 
-### Configuration
-You can show the dialog from menu bar.
+Build:
 
-Configuration will be saved into Electron's userData directory:
+```sh
+xcodebuild -project Mattermost.xcodeproj -scheme Mattermost -configuration Debug -derivedDataPath /private/tmp/MattermostDerivedData build
+```
 
-* `%APPDATA%\Mattermost` on Windows
-* `~/Library/Application Support/Mattermost` on OS X
-* `~/.config/Mattermost` on Linux
+Or use:
 
-A custom data directory location can be specified with:
+```sh
+make build
+```
 
-* `Mattermost.exe --args --data-dir C:\my-mattermost-data` on Windows
-* `open /Applications/Mattermost.app/ --args --data-dir ~/my-mattermost-data/` on macOS 
-* `./mattermost-desktop --args --data-dir ~/my-mattermost-data/` on Linux
+## Current Feature Surface
 
-## Custom App Deployments
-Our [docs provide a guide](https://docs.mattermost.com/deployment/desktop-app-deployment.html) on how to customize and distribute your own Mattermost Desktop App, including how to distribute the official Windows Desktop App silently to end users, pre-configured with the server URL and other app settings.
+- Native SwiftUI shell with a server sidebar and native tab strip.
+- Add, edit, remove, persist, and switch Mattermost servers.
+- Persistent `WKWebView` pool per Mattermost view.
+- `window.desktopAPI` compatibility shim for app info, notifications, unread state, history, popouts, theme/dark-mode calls, and calls-related stubs.
+- Native notifications through `UNUserNotificationCenter`.
+- Dock badge aggregation for mentions, unreads, and expired sessions.
+- Native status item and login item integration.
+- Mattermost URL scheme registration and basic deep-link routing.
+- App sandbox, network, camera, microphone, Downloads, and user-selected file entitlements.
 
-## Development and Making Contributions
-Our [developer guide](https://developers.mattermost.com/contribute/desktop/) has detailed information on how to set up your development environment, develop, and test changes to the Desktop App.
+## Known Gaps
+
+- Calls and screen sharing currently expose compatibility stubs where native ScreenCaptureKit/WebRTC work is still needed.
+- Automatic migration from the Electron `config.json` format is not implemented.
+- Release packaging, notarization, Sparkle-style updates, and Mac App Store configuration are intentionally not part of this scaffold yet.
+- No unit or integration tests are included by design for this fork stage; use `ManualTestingPlan.md`.
